@@ -1,68 +1,86 @@
-import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logout, getCurrentUser } from '../../services/auth';
-import {
-  HomeIcon,
-  MicrophoneIcon,
-  ChartBarIcon,
-  CogIcon,
-} from '@heroicons/react/24/outline';
+import { Home, Mic, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
+import '../../assets/css/dashboard.css';
 
 const LearnerLayout = () => {
   const user = getCurrentUser();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { icon: HomeIcon, label: 'Dashboard', path: '/learner' },
-    { icon: MicrophoneIcon, label: 'Luyện Nói', path: '/learner/speaking' },
-    { icon: ChartBarIcon, label: 'Tiến Độ', path: '/learner/progress' },
-    { icon: CogIcon, label: 'Cài Đặt', path: '/learner/settings' },
+    { icon: Home, label: 'Dashboard', path: '/learner' },
+    { icon: Mic, label: 'Luyện Nói', path: '/learner/speaking' },
+    { icon: BarChart3, label: 'Tiến Độ', path: '/learner/progress' },
+    { icon: Settings, label: 'Cài Đặt', path: '/learner/settings' },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/', { replace: true });
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-64 bg-white shadow-lg">
-        <div className="p-6 border-b">
-          <h1 className="text-2xl font-bold text-blue-600">👨‍🎓 Học Viên</h1>
-          <p className="text-sm text-gray-500 mt-1">{user?.role}</p>
+    <div className="dashboard-root">
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'active' : ''}`}>
+        <div className="sidebar-logo">
+          <h2 className="flex items-center gap-2">Học viên</h2>
+          <p className="text-sm text-blue-300 mt-1">{user?.username || 'Học viên'}</p>
         </div>
-        
-        <nav className="mt-6 px-4">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className="flex items-center px-4 py-3 text-gray-700 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition duration-200 mb-2"
-            >
-              <item.icon className="h-5 w-5 mr-3" />
-              {item.label}
-            </Link>
-          ))}
+
+        <nav className="sidebar-nav">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive ? 'active' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Icon />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
-        
-        <div className="absolute bottom-6 w-full px-4">
+
+        <div className="mt-auto p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center px-4 py-3 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition duration-200"
+            className="sidebar-link w-full justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
-            <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut />
             Đăng xuất
           </button>
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-8">
-        <Outlet />
-      </div>
+      <main className="dashboard-main">
+        <header className="dashboard-header">
+          <button className="menu-toggle lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? <X /> : <Menu />}
+          </button>
+          <h1 className="dashboard-title">
+            {menuItems.find(i => i.path === location.pathname)?.label || 'Học viên'}
+          </h1>
+          <div className="dashboard-user">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold">
+              {user?.username?.[0]?.toUpperCase() || 'L'}
+            </div>
+            <div>
+              <p className="font-medium">{user?.username || 'Học viên'}</p>
+              <p className="text-sm text-blue-300">Học viên</p>
+            </div>
+          </div>
+        </header>
+        <div className="mt-6">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 };

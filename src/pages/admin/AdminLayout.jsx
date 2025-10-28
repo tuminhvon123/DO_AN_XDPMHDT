@@ -1,68 +1,89 @@
-import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logout, getCurrentUser } from '../../services/auth';
-import {
-  HomeIcon,
-  UsersIcon,
-  CurrencyDollarIcon,
-  ChartBarIcon,
-  CogIcon,
-} from '@heroicons/react/24/outline';
+import { Home, Users, Package, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
+import '../../assets/css/dashboard.css';
 
 const AdminLayout = () => {
   const user = getCurrentUser();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { icon: HomeIcon, label: 'Dashboard', path: '/admin' },
-    { icon: UsersIcon, label: 'Quản lý User', path: '/admin/users' },
-    { icon: CurrencyDollarIcon, label: 'Gói Dịch Vụ', path: '/admin/packages' },
-    { icon: ChartBarIcon, label: 'Báo Cáo', path: '/admin/reports' },
-    { icon: CogIcon, label: 'Cài Đặt', path: '/admin/settings' },
+    { icon: Home, label: 'Tổng quan', path: '/admin' },
+    { icon: Users, label: 'Người dùng', path: '/admin/users' },
+    { icon: Package, label: 'Gói học', path: '/admin/packages' },
+    { icon: BarChart3, label: 'Báo cáo', path: '/admin/reports' },
+    { icon: Settings, label: 'Cài đặt', path: '/admin/settings' },
   ];
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/', { replace: true }); // Về trang chủ, KHÔNG quay lại
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <div className="w-64 bg-gradient-to-b from-red-600 to-red-700 text-white shadow-lg">
-        <div className="p-6 border-b border-red-500/30">
-          <h1 className="text-2xl font-bold">🛡️ Admin</h1>
-          <p className="text-red-100 mt-1">{user?.role}</p>
+    <div className="dashboard-root">
+      {/* Sidebar */}
+      <aside className={`dashboard-sidebar ${sidebarOpen ? 'active' : ''}`}>
+        <div className="sidebar-logo">
+          <h2 className="flex items-center gap-2">Admin Panel</h2>
+          <p className="text-sm text-purple-300 mt-1">{user?.username || 'Admin'}</p>
         </div>
-        
-        <nav className="mt-6 px-4">
-          {menuItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className="flex items-center px-4 py-3 text-red-100 rounded-lg hover:bg-white/20 transition duration-200 mb-2"
-            >
-              <item.icon className="h-5 w-5 mr-3" />
-              {item.label}
-            </Link>
-          ))}
+
+        <nav className="sidebar-nav">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`sidebar-link ${isActive ? 'active' : ''}`}
+                onClick={() => setSidebarOpen(false)}
+              >
+                <Icon />
+                {item.label}
+              </Link>
+            );
+          })}
         </nav>
-        
-        <div className="absolute bottom-6 w-full px-4">
+
+        <div className="mt-auto p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center px-4 py-3 bg-white/20 text-white rounded-lg hover:bg-white/30 transition duration-200"
+            className="sidebar-link w-full justify-center text-red-400 hover:text-red-300 hover:bg-red-500/10"
           >
-            <svg className="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
+            <LogOut />
             Đăng xuất
           </button>
         </div>
-      </div>
+      </aside>
 
-      <div className="flex-1 overflow-y-auto p-8">
-        <Outlet />
-      </div>
+      {/* Main */}
+      <main className="dashboard-main">
+        <header className="dashboard-header">
+          <button className="menu-toggle lg:hidden" onClick={() => setSidebarOpen(!sidebarOpen)}>
+            {sidebarOpen ? <X /> : <Menu />}
+          </button>
+          <h1 className="dashboard-title">
+            {menuItems.find(i => i.path === location.pathname)?.label || 'Admin'}
+          </h1>
+          <div className="dashboard-user">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+              {user?.username?.[0]?.toUpperCase() || 'A'}
+            </div>
+            <div>
+              <p className="font-medium">{user?.username || 'Admin'}</p>
+              <p className="text-sm text-purple-300">Quản trị viên</p>
+            </div>
+          </div>
+        </header>
+        <div className="mt-6">
+          <Outlet />
+        </div>
+      </main>
     </div>
   );
 };
