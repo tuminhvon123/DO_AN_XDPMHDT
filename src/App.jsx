@@ -83,9 +83,9 @@ function App() {
         <Route 
           path="/about" 
           element={
-            <DefaultLayout>
+            <FullscreenLayout>
               <About />
-            </DefaultLayout>
+            </FullscreenLayout>
           } 
         />
 
