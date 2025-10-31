@@ -1,31 +1,48 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { register } from '../../services/auth';
-import '../../pages/common/auth.css'; // ĐÚNG ĐƯỜNG DẪN
+import '../../pages/common/auth.css';
 
 const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('learner');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    
-    setTimeout(() => {
-      register(username, password, role);
-      setLoading(false);
+    setError('');
+
+    try {
+      await register(username, password, role);
       alert('Đăng ký thành công! Vui lòng đăng nhập.');
       navigate('/login', { replace: true });
-    }, 1000);
+    } catch (err) {
+      setError(err.message || 'Đăng ký thất bại.');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    const handleEnter = (e) => {
+      if (e.key === 'Enter' && !loading && username && password) {
+        handleSubmit(e);
+      }
+    };
+    window.addEventListener('keydown', handleEnter);
+    return () => window.removeEventListener('keydown', handleEnter);
+  }, [username, password, role, loading]);
 
   return (
     <div className="auth-container">
       <div className="auth-card">
         <h2 className="auth-title">Đăng ký tài khoản</h2>
+
+        {error && <div className="auth-error">{error}</div>}
 
         <form onSubmit={handleSubmit}>
           <div className="auth-form-row">
@@ -37,6 +54,7 @@ const Register = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="auth-input"
                 placeholder="Tên đăng nhập"
+                disabled={loading}
               />
             </div>
 
@@ -48,6 +66,7 @@ const Register = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="auth-input"
                 placeholder="Mật khẩu"
+                disabled={loading}
               />
             </div>
 
@@ -56,6 +75,7 @@ const Register = () => {
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
                 className="auth-select"
+                disabled={loading}
               >
                 <option value="learner">Học viên</option>
                 <option value="mentor">Mentor</option>
@@ -64,12 +84,15 @@ const Register = () => {
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="auth-submit"
-          >
-            {loading ? 'Đang đăng ký...' : 'Đăng ký'}
+          <button type="submit" className="auth-submit" disabled={loading}>
+            {loading ? (
+              <div className="flex items-center justify-center gap-3">
+                <div className="auth-spinner"></div>
+                <span>Đang đăng ký...</span>
+              </div>
+            ) : (
+              'Đăng ký'
+            )}
           </button>
         </form>
 

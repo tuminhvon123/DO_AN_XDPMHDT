@@ -1,30 +1,39 @@
-const fakeUsers = {
-  'user': { password: '123', role: 'learner' },
-  'mentor': { password: '123', role: 'mentor' },
-  'admin': { password: '123', role: 'admin' }
+// src/services/auth.js
+
+export const login = async (username, password, role) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      // Giả lập kiểm tra
+      if (username && password) {
+        const user = { username, role, id: Date.now() };
+        localStorage.setItem('user', JSON.stringify(user));
+        resolve(user);
+      } else {
+        reject(new Error('Thông tin không hợp lệ'));
+      }
+    }, 1000);
+  });
 };
 
-export const login = (username, password) => {
-  const user = fakeUsers[username];
-  if (user && user.password === password) {
-    localStorage.setItem('token', 'fake-jwt-token');
-    localStorage.setItem('role', user.role);
-    return true;
-  }
-  return false;
-};
-
-export const register = (username, password, role) => {
-  fakeUsers[username] = { password, role };
-};
-
-export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('role');
+export const register = async (username, password, role) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (username && password) {
+        const user = { username, role, id: Date.now() };
+        localStorage.setItem('user', JSON.stringify(user));
+        resolve(user);
+      } else {
+        reject(new Error('Vui lòng điền đầy đủ thông tin'));
+      }
+    }, 1000);
+  });
 };
 
 export const getCurrentUser = () => {
-  const token = localStorage.getItem('token');
-  const role = localStorage.getItem('role');
-  return token ? { role } : null;
+  const user = localStorage.getItem('user');
+  return user ? JSON.parse(user) : null;
+};
+
+export const logout = () => {
+  localStorage.removeItem('user');
 };
