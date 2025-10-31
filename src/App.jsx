@@ -15,7 +15,7 @@ import LearnerDashboard from './pages/learner/LearnerDashboard';
 import SpeakingPractice from './pages/learner/SpeakingPractice';
 import ProgressTracking from './pages/learner/ProgressTracking';
 import Settings from './pages/learner/Settings';
-
+import Payment from './pages/learner/Payment';
 // MENTOR LAYOUT & PAGES
 import MentorLayout from './pages/mentor/MentorLayout';
 import MentorDashboard from './pages/mentor/MentorDashboard';
@@ -101,6 +101,7 @@ function App() {
           <Route index element={<LearnerDashboard />} />
           <Route path="speaking" element={<SpeakingPractice />} />
           <Route path="progress" element={<ProgressTracking />} />
+          <Route path="payment" element={<Payment />} />
           <Route path="settings" element={<Settings />} />
           {/* ❌ XÓA DUPLICATE ROUTE */}
         </Route>

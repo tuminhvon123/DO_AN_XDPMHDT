@@ -1,7 +1,8 @@
+// src/pages/learner/LearnerLayout.jsx
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logout, getCurrentUser } from '../../services/auth';
-import { Home, Mic, BarChart3, Settings, LogOut, Menu, X } from 'lucide-react';
+import { Home, Mic, BarChart3, Settings, CreditCard, LogOut, Menu, X } from 'lucide-react';
 import '../../assets/css/dashboard.css';
 
 const LearnerLayout = () => {
@@ -14,6 +15,7 @@ const LearnerLayout = () => {
     { icon: Home, label: 'Dashboard', path: '/learner' },
     { icon: Mic, label: 'Luyện Nói', path: '/learner/speaking' },
     { icon: BarChart3, label: 'Tiến Độ', path: '/learner/progress' },
+    { icon: CreditCard, label: 'Thanh toán', path: '/learner/payment' }, // MỚI
     { icon: Settings, label: 'Cài Đặt', path: '/learner/settings' },
   ];
 
