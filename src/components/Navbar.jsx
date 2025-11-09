@@ -1,13 +1,20 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { logout, getCurrentUser } from '../services/userApi'; // ✅ Import getCurrentUser
+import { logout, getCurrentUser } from '../services/userApi';
 
 const Navbar = () => {
-  const user = getCurrentUser(); // ✅ Sử dụng getCurrentUser
+  const [user, setUser] = useState(null);
   const navigate = useNavigate();
+
+  // ✅ Sử dụng useEffect để lấy user khi component mount
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, []);
 
   const handleLogout = () => {
     logout();
+    setUser(null); // ✅ Cập nhật state
     navigate('/');
   };
 
@@ -37,13 +44,14 @@ const Navbar = () => {
               </>
             ) : (
               <>
+                <span className="text-white">Xin chào, {user.username}</span>
                 <Link 
                   to="/learner" 
                   className="text-white hover:text-blue-200 px-3 py-2 rounded-lg transition duration-300"
                 >
                   Học tập
                 </Link>
-                {user.role === 'mentor' || user.role === 'admin' && (
+                {(user.role === 'mentor' || user.role === 'admin') && (
                   <Link 
                     to="/mentor" 
                     className="text-white hover:text-blue-200 px-3 py-2 rounded-lg transition duration-300"
