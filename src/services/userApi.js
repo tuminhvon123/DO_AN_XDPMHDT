@@ -1,8 +1,9 @@
+// src/services/userApi.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://127.0.0.1:5001'; // Flask user-service
+const API_BASE_URL = 'http://127.0.0.1:5001';
 
-// Hàm đăng nhập
+// 🟢 Đăng nhập
 export const login = async (username, password, role) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/auth/login`, {
@@ -13,13 +14,12 @@ export const login = async (username, password, role) => {
 
     const { token, user } = response.data;
 
-    // ✅ Lưu token + thông tin user vào localStorage
+    // ✅ Lưu token + user vào localStorage
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
 
     return user;
   } catch (error) {
-    // Xử lý lỗi
     if (error.response) {
       throw new Error(error.response.data.message || 'Đăng nhập thất bại');
     } else {
@@ -28,36 +28,14 @@ export const login = async (username, password, role) => {
   }
 };
 
-// ✅ THÊM HÀM GET CURRENT USER
-export const getCurrentUser = () => {
+// 🟢 Đăng ký
+export const register = async (username, password, role) => {
   try {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      return JSON.parse(userStr);
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting current user:', error);
-    return null;
-  }
-};
-
-// ✅ THÊM HÀM LOGOUT
-export const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  // Có thể thêm redirect hoặc cleanup khác nếu cần
-};
-
-// ✅ THÊM HÀM KIỂM TRA TOKEN (tùy chọn)
-export const getToken = () => {
-  return localStorage.getItem('token');
-};
-
-// ✅ THÊM HÀM ĐĂNG KÝ (nếu cần)
-export const register = async (userData) => {
-  try {
-    const response = await axios.post(`${API_BASE_URL}/auth/register`, userData);
+    const response = await axios.post(`${API_BASE_URL}/auth/register`, {
+      username,
+      password,
+      role,
+    });
     return response.data;
   } catch (error) {
     if (error.response) {
@@ -66,4 +44,20 @@ export const register = async (userData) => {
       throw new Error('Không thể kết nối đến máy chủ');
     }
   }
+};
+
+// 🟢 Lấy user hiện tại
+export const getCurrentUser = () => {
+  try {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  } catch {
+    return null;
+  }
+};
+
+// 🟢 Đăng xuất
+export const logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 };
