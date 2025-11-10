@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logout, getCurrentUser } from '../../services/userApi';
-import { Home, Mic, BarChart3, Settings, CreditCard, LogOut, Menu, X } from 'lucide-react';
+import { Home, Mic, BarChart3, Settings, CreditCard, LogOut, Menu, X, BookOpen } from 'lucide-react'; // 👈 thêm BookOpen
 import '../../assets/css/dashboard.css';
 
 const LearnerLayout = () => {
@@ -13,9 +13,10 @@ const LearnerLayout = () => {
 
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/learner' },
+    { icon: BookOpen, label: 'Khóa học', path: '/learner/courses' }, // 👈 thêm mục Khóa học
     { icon: Mic, label: 'Luyện Nói', path: '/learner/speaking' },
     { icon: BarChart3, label: 'Tiến Độ', path: '/learner/progress' },
-    { icon: CreditCard, label: 'Thanh toán', path: '/learner/payment' }, // MỚI
+    { icon: CreditCard, label: 'Thanh toán', path: '/learner/payment' },
     { icon: Settings, label: 'Cài Đặt', path: '/learner/settings' },
   ];
 
@@ -79,6 +80,7 @@ const LearnerLayout = () => {
             </div>
           </div>
         </header>
+
         <div className="mt-6">
           <Outlet />
         </div>
