@@ -1,48 +1,103 @@
 import React, { useEffect, useState } from "react";
-import { getAllCourses } from "../../services/learningApi";
+import { getCourses, addCourse, deleteCourse ,updateCourse } from '../../services/learningApi';
+
 
 const CourseList = () => {
   const [courses, setCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [newCourse, setNewCourse] = useState({
+    title: "",
+    description: "",
+    mentor_name: "",
+  });
 
+  // Lấy danh sách khóa học khi load trang
   useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const data = await getAllCourses();
-        setCourses(data);
-      } catch (error) {
-        console.error("Lỗi khi tải khóa học:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchCourses();
   }, []);
 
-  if (loading) return <p>⏳ Đang tải danh sách khóa học...</p>;
+  const fetchCourses = async () => {
+    const data = await getCourses();
+    setCourses(data);
+  };
+
+  const handleAdd = async () => {
+    if (!newCourse.title) return alert("Nhập tên khóa học!");
+    await addCourse(newCourse);
+    setNewCourse({ title: "", description: "", mentor_name: "" });
+    fetchCourses();
+  };
+
+  const handleDelete = async (id) => {
+    await deleteCourse(id);
+    fetchCourses();
+  };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-semibold mb-4 text-blue-700">📘 Danh sách khóa học</h2>
+      <h2 className="text-2xl font-bold mb-4">Danh sách khóa học</h2>
 
-      {courses.length === 0 ? (
-        <p>Chưa có khóa học nào.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {courses.map((course) => (
-            <div
-              key={course.id}
-              className="bg-white shadow-md rounded-lg p-4 border border-gray-200 hover:shadow-lg transition"
-            >
-              <h3 className="text-lg font-bold text-blue-600 mb-2">{course.title}</h3>
-              <p className="text-gray-700 text-sm mb-2">{course.description}</p>
-              <p className="text-gray-500 text-sm">
-                <strong>Giảng viên:</strong> {course.mentor_name || "Đang cập nhật"}
-              </p>
-            </div>
+      {/* Form thêm khóa học */}
+      <div className="mb-6">
+        <input
+          className="border p-2 mr-2"
+          placeholder="Tên khóa học"
+          value={newCourse.title}
+          onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
+        />
+        <input
+          className="border p-2 mr-2"
+          placeholder="Mô tả"
+          value={newCourse.description}
+          onChange={(e) =>
+            setNewCourse({ ...newCourse, description: e.target.value })
+          }
+        />
+        <input
+          className="border p-2 mr-2"
+          placeholder="Giảng viên"
+          value={newCourse.mentor_name}
+          onChange={(e) =>
+            setNewCourse({ ...newCourse, mentor_name: e.target.value })
+          }
+        />
+        <button
+          className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={handleAdd}
+        >
+          Thêm
+        </button>
+      </div>
+
+      {/* Danh sách */}
+      <table className="min-w-full border">
+        <thead>
+          <tr className="bg-gray-200">
+            <th className="p-2 border">ID</th>
+            <th className="p-2 border">Tên khóa học</th>
+            <th className="p-2 border">Mô tả</th>
+            <th className="p-2 border">Giảng viên</th>
+            <th className="p-2 border">Hành động</th>
+          </tr>
+        </thead>
+        <tbody>
+          {courses.map((c) => (
+            <tr key={c.id}>
+              <td className="border p-2">{c.id}</td>
+              <td className="border p-2">{c.title}</td>
+              <td className="border p-2">{c.description}</td>
+              <td className="border p-2">{c.mentor_name}</td>
+              <td className="border p-2 text-center">
+                <button
+                  onClick={() => handleDelete(c.id)}
+                  className="bg-red-600 text-white px-3 py-1 rounded"
+                >
+                  Xóa
+                </button>
+              </td>
+            </tr>
           ))}
-        </div>
-      )}
+        </tbody>
+      </table>
     </div>
   );
 };
