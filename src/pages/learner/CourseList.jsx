@@ -1,105 +1,94 @@
 import React, { useEffect, useState } from "react";
-import { getCourses, addCourse, deleteCourse ,updateCourse } from '../../services/learningApi';
+import { getCourses } from "../../services/learningApi";
+import { enrollCourse, getMyEnrollments } from "../../services/learningApi";
 
 
-const CourseList = () => {
+// 👉 Giả sử bạn đã có context/auth, tạm hard-code user
+const CURRENT_USER_ID = "user_001";
+
+export default function CourseCatalog() {
   const [courses, setCourses] = useState([]);
-  const [newCourse, setNewCourse] = useState({
-    title: "",
-    description: "",
-    mentor_name: "",
-  });
+  const [enrolledMap, setEnrolledMap] = useState({}); // { [courseId]: true }
+  const [loading, setLoading] = useState(false);
 
-  // Lấy danh sách khóa học khi load trang
   useEffect(() => {
-    fetchCourses();
+    loadData();
   }, []);
 
-  const fetchCourses = async () => {
-    const data = await getCourses();
-    setCourses(data);
-  };
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [list, myEnrolls] = await Promise.all([
+        getCourses(),
+        getMyEnrollments(CURRENT_USER_ID),
+      ]);
+      setCourses(list || []);
+      const map = {};
+      (myEnrolls || []).forEach((e) => (map[e.course_id] = true));
+      setEnrolledMap(map);
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const handleAdd = async () => {
-    if (!newCourse.title) return alert("Nhập tên khóa học!");
-    await addCourse(newCourse);
-    setNewCourse({ title: "", description: "", mentor_name: "" });
-    fetchCourses();
-  };
-
-  const handleDelete = async (id) => {
-    await deleteCourse(id);
-    fetchCourses();
-  };
+  async function handleEnroll(courseId) {
+    try {
+      await enrollCourse(courseId, CURRENT_USER_ID);
+      setEnrolledMap((m) => ({ ...m, [courseId]: true })); // optimistic update
+      alert("Đăng ký thành công!");
+    } catch (e) {
+      alert(e.message || "Đăng ký thất bại");
+    }
+  }
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-4">Danh sách khóa học</h2>
+    <div className="course-container">
+      <h2 className="course-title">Khóa học dành cho bạn</h2>
 
-      {/* Form thêm khóa học */}
-      <div className="mb-6">
-        <input
-          className="border p-2 mr-2"
-          placeholder="Tên khóa học"
-          value={newCourse.title}
-          onChange={(e) => setNewCourse({ ...newCourse, title: e.target.value })}
-        />
-        <input
-          className="border p-2 mr-2"
-          placeholder="Mô tả"
-          value={newCourse.description}
-          onChange={(e) =>
-            setNewCourse({ ...newCourse, description: e.target.value })
-          }
-        />
-        <input
-          className="border p-2 mr-2"
-          placeholder="Giảng viên"
-          value={newCourse.mentor_name}
-          onChange={(e) =>
-            setNewCourse({ ...newCourse, mentor_name: e.target.value })
-          }
-        />
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          onClick={handleAdd}
-        >
-          Thêm
-        </button>
-      </div>
+      {loading && <p>Đang tải...</p>}
 
-      {/* Danh sách */}
-      <table className="min-w-full border">
+      <table className="course-table">
         <thead>
-          <tr className="bg-gray-200">
-            <th className="p-2 border">ID</th>
-            <th className="p-2 border">Tên khóa học</th>
-            <th className="p-2 border">Mô tả</th>
-            <th className="p-2 border">Giảng viên</th>
-            <th className="p-2 border">Hành động</th>
+          <tr>
+            <th>ID</th>
+            <th>Tên khóa học</th>
+            <th>Mô tả</th>
+            <th>Giảng viên</th>
+            <th>Đăng ký</th>
           </tr>
         </thead>
         <tbody>
-          {courses.map((c) => (
-            <tr key={c.id}>
-              <td className="border p-2">{c.id}</td>
-              <td className="border p-2">{c.title}</td>
-              <td className="border p-2">{c.description}</td>
-              <td className="border p-2">{c.mentor_name}</td>
-              <td className="border p-2 text-center">
-                <button
-                  onClick={() => handleDelete(c.id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded"
-                >
-                  Xóa
-                </button>
+          {(courses || []).map((c) => {
+            const enrolled = !!enrolledMap[c.id];
+            return (
+              <tr key={c.id}>
+                <td>{c.id}</td>
+                <td>{c.title}</td>
+                <td>{c.description}</td>
+                <td>{c.mentor_name}</td>
+                <td>
+                  <button
+                    className={`${
+                      enrolled ? "bg-gray-400 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-500"
+                    } text-white px-3 py-1 rounded`}
+                    onClick={() => !enrolled && handleEnroll(c.id)}
+                    disabled={enrolled}
+                  >
+                    {enrolled ? "Đã đăng ký" : "Đăng ký"}
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+          {(!courses || courses.length === 0) && (
+            <tr>
+              <td colSpan="5" style={{ padding: 12, textAlign: "center" }}>
+                Chưa có khóa học nào.
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
   );
-};
-
-export default CourseList;
+}
